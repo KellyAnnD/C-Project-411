@@ -195,7 +195,7 @@ void listArticles(int sock, FILE *logfile, char *action)
        this code using system() to call things! */
  
     memset(buf, 0, sizeof(buf));
-    system(LISTCOMMAND);
+    execve(LISTCOMMAND);
  
     list = fopen("list.txt", "r");
  

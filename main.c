@@ -246,7 +246,6 @@ void adminFunctions(FILE *logfile, int sock)
     {
         writeSock(sock, READY, sizeof(sock));
         memset(action, 0, sizeof(action));
-        len = readSock(sock, action, sizeof(sock));
     
         if (action[0] == ADD_USER)
         {

@@ -49,7 +49,6 @@ int authenticate(FILE *logfile, char *user, char *pass);
 int writeSock(int sock, char *buf, size_t len)
 {
     ssize_t byteswrote = 0;
-    ssize_t ret = 0;
  
     while (byteswrote < len)
     {

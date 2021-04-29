@@ -99,7 +99,7 @@ int readSock(int sock, char *buf, size_t len)
 void writeArticle(int sock, FILE *logfile, char *action)
 {
     FILE *file;
-    char *p;
+   // char *p;
     size_t x, y;
     int complete = 0;
     char buf[1024];
@@ -109,7 +109,7 @@ void writeArticle(int sock, FILE *logfile, char *action)
     // char* path = (char*)calloc(1024, sizeof(char));
  
     strcpy(path, ARTICLEPATH);
-    strncat(path, &action[1], sizeof(path));
+    strlcat(path, &action[1], sizeof(path));
  
     logData(logfile, "user writing article: %s", path);
  
@@ -188,6 +188,7 @@ void listArticles(int sock, FILE *logfile, char *action)
 {
     char buf[100];
     FILE *list;
+    FILE *command;
  
     logData(logfile, "user has requested a list of articles");
  
@@ -195,7 +196,9 @@ void listArticles(int sock, FILE *logfile, char *action)
        this code using system() to call things! */
  
     memset(buf, 0, sizeof(buf));
-    execve(LISTCOMMAND);
+    command = popen(LISTCOMMAND,"w");
+    if (command == NULL)
+        return;
  
     list = fopen("list.txt", "r");
  
@@ -203,7 +206,8 @@ void listArticles(int sock, FILE *logfile, char *action)
     {
         writeSock(sock, buf, strlen(buf));
     }
- 
+    
+    fclose(command);
     fclose(list);
     return;
 }
@@ -320,7 +324,7 @@ int authenticate(FILE *logfile, char *user, char *pass)
     /* look up user by checking user files: done via system() to /bin/ls|grep user */
     logData(logfile, "performing lookup for user via system()!\n");
     snprintf(userfile, sizeof(userfile)-1, "%s.txt", user);
-    snprintf(search, sizeof(userfile)-1, "stat %s`ls %s | grep %s`", USERPATH, USERPATH, userfile);
+    snprintf(search, sizeof(search)-1, "stat %s`ls %s | grep %s`", USERPATH, USERPATH, userfile);
     ret = system(search);
  
     if (ret != 0)
@@ -357,7 +361,7 @@ char *findarg(char *argbuf, char argtype)
 {
     char *ptr1;
     char *found = NULL;
-    char type = 0;
+   // char type = 0;
     size_t size;
  
     ptr1 = argbuf;
@@ -512,7 +516,7 @@ void mainLoop(FILE *logf, int sock)
         close(clientfd);
     }
  
-    free(client);
+ //   free(client);
 }
  
 void spawnhandler(int signumber)
@@ -619,4 +623,5 @@ void logData(FILE *logfile, char *format, ...)
     fprintf(logfile, "LoggedData [Proccess:%i]: %s\n", getpid(), buffer);
     fflush(logfile);
 }
+
 

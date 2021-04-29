@@ -484,7 +484,6 @@ void handleConnection(FILE *logfile, int sock)
  
 void mainLoop(FILE *logf, int sock)
 {
-    int clientfd = 0;
     struct sockaddr_in *client = (struct sockaddr_in*)malloc(sizeof(struct sockaddr_in));
     socklen_t clientlen = 0;
     pid_t offspring = 0;

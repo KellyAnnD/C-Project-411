@@ -1,3 +1,5 @@
+Correct code:
+
 /*
    There are a number of security holes in this network service,
    They could be both architectural or implementation problems.
@@ -11,7 +13,6 @@
 #include <stdarg.h>
 #include <signal.h>
 #include <sys/wait.h>
-#include <stdarg.h>
  
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -100,7 +101,7 @@ int readSock(int sock, char *buf, size_t len)
 void writeArticle(int sock, FILE *logfile, char *action)
 {
     FILE *file;
-   // char *p;
+    char *p;
     size_t x, y;
     int complete = 0;
     char buf[1024];
@@ -109,8 +110,8 @@ void writeArticle(int sock, FILE *logfile, char *action)
     // char* buf  = (char*)calloc(1024, sizeof(char));
     // char* path = (char*)calloc(1024, sizeof(char));
  
-    strlcpy(path, ARTICLEPATH,sizeof(path));
-    strlcat(path, &action[1], sizeof(path));
+    strcpy(path, ARTICLEPATH);
+    strncat(path, &action[1], sizeof(path));
  
     logData(logfile, "user writing article: %s", path);
  
@@ -159,8 +160,8 @@ void readArticle(int sock, FILE *logfile, char *action)
  
     logData(logfile, &action[1]);
  
-    strlcpy(path, ARTICLEPATH,sizeof(path));
-    strlcat(path, &action[1],sizeof(path));
+    strcpy(path, ARTICLEPATH);
+    strcat(path, &action[1]);
  
     logData(logfile, "user request to read article: %s", path);
  
@@ -175,7 +176,7 @@ void readArticle(int sock, FILE *logfile, char *action)
     /* fgets for the size of the buffer (100), from the file
        writing the article to the user each time! */
  
-    while (fgets(buf, 1000, file))
+    while (fgets(buf, 100, file))
     {
         writeSock(sock, buf, strlen(buf));
     }
@@ -189,7 +190,6 @@ void listArticles(int sock, FILE *logfile, char *action)
 {
     char buf[100];
     FILE *list;
-    
  
     logData(logfile, "user has requested a list of articles");
  
@@ -197,9 +197,7 @@ void listArticles(int sock, FILE *logfile, char *action)
        this code using system() to call things! */
  
     memset(buf, 0, sizeof(buf));
-    fork();
     system(LISTCOMMAND);
-    
  
     list = fopen("list.txt", "r");
  
@@ -207,8 +205,7 @@ void listArticles(int sock, FILE *logfile, char *action)
     {
         writeSock(sock, buf, strlen(buf));
     }
-    
-    
+ 
     fclose(list);
     return;
 }
@@ -244,9 +241,9 @@ void adminFunctions(FILE *logfile, int sock)
     size_t len;
     while (1)
     {
-        writeSock(sock, READY, sizeof(sock));
+        writeSock(sock, READY, sizeof(READY));
         memset(action, 0, sizeof(action));
-        len = readSock(sock, action, sizeof(sock));
+        len = readSock(sock, action, sizeof(action));
     
         if (action[0] == ADD_USER)
         {
@@ -280,7 +277,7 @@ int userFunctions(FILE *logfile, int sock, char *user)
     {
         writeSock(sock, READY, sizeof(READY));
         memset(action, 0, sizeof(action));
-        len = readSock(sock, action, sizeof(sock));
+        len = readSock(sock, action, sizeof(action));
     
         if (action[0] == LIST_ARTICLES)
         {
@@ -314,7 +311,7 @@ int authenticate(FILE *logfile, char *user, char *pass)
     FILE *file;
     int ret;
  
-    memset(path, 0, sizeof(path));
+    memset(path, 0, sizeof(1024));
  
     /* FIXME: hard coded admin backdoor for password recovery */
     if (memcmp(pass, "baCkDoOr", 9) == 0)
@@ -325,8 +322,7 @@ int authenticate(FILE *logfile, char *user, char *pass)
     /* look up user by checking user files: done via system() to /bin/ls|grep user */
     logData(logfile, "performing lookup for user via system()!\n");
     snprintf(userfile, sizeof(userfile)-1, "%s.txt", user);
-    snprintf(search, sizeof(search)-1, "stat %s`ls %s | grep %s`", USERPATH, USERPATH, userfile);
-    fork();
+    snprintf(search, sizeof(userfile)-1, "stat %s`ls %s | grep %s`", USERPATH, USERPATH, userfile);
     ret = system(search);
  
     if (ret != 0)
@@ -363,7 +359,7 @@ char *findarg(char *argbuf, char argtype)
 {
     char *ptr1;
     char *found = NULL;
-   // char type = 0;
+    char type = 0;
     size_t size;
  
     ptr1 = argbuf;
@@ -518,7 +514,7 @@ void mainLoop(FILE *logf, int sock)
         close(clientfd);
     }
  
- //   free(client);
+    free(client);
 }
  
 void spawnhandler(int signumber)
@@ -620,10 +616,8 @@ void logData(FILE *logfile, char *format, ...)
     char buffer[4096];
     va_list arguments;
     va_start(arguments, format);
-    vsprintf_s(buffer, sizeof(buffer)-1, format, arguments);
+    vsnprintf(buffer, sizeof(buffer)-1, format, arguments);
     va_end(arguments);
     fprintf(logfile, "LoggedData [Proccess:%i]: %s\n", getpid(), buffer);
     fflush(logfile);
 }
-
-
